@@ -110,3 +110,15 @@ jobs:
     steps:
       - name: Success Message
         run: echo "Pipeline completed successfully"
+
+
+      - name: SonarCloud Scan
+  uses: SonarSource/sonarqube-scan-action@v6
+  env:
+    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  with:
+    args: >
+      -Dsonar.projectKey=admin-service
+      -Dsonar.organization=team4devops
+      -Dsonar.sources=.
+      -Dsonar.host.url=https://sonarcloud.io    
