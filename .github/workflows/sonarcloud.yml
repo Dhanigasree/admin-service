@@ -109,4 +109,4 @@ jobs:
 
     steps:
       - name: Success Message
-        run: echo "Pipeline completed successfully 🚀"
+        run: echo "Pipeline completed successfully"
