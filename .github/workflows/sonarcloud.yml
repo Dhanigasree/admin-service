@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout Code
+      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -20,29 +20,29 @@ jobs:
         with:
           node-version: '18'
 
-      # 3. Install Dependencies
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm install
 
-      # 4. Run Tests (Safe)
+      # 4. Run tests (safe even if missing)
       - name: Run tests
         run: npm test --if-present
 
-      # 5. Build
+      # 5. Build project (safe if missing)
       - name: Build project
         run: npm run build --if-present
 
-      # 6. SonarCloud Scan
+      # 6. SonarCloud Analysis (SAST + Code Quality)
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           args: >
             -Dsonar.projectKey=admin-service
-            -Dsonar.organization=YOUR_ORG
+            -Dsonar.organization=YOUR_REAL_ORG_KEY
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # 7. Snyk Scan
+      # 7. Snyk Security Scan (SCA)
       - name: Snyk Scan
         uses: snyk/actions/node@master
         continue-on-error: true
@@ -51,24 +51,24 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # 8. Slack Success (runs only if previous steps passed)
-      - name: Slack Notification Success
+      # 8. Slack Notification (Success - non blocking)
+      - name: Slack Success Notification
         if: success()
+        continue-on-error: true
         uses: 8398a7/action-slack@v3
-        continue-on-error: true   # prevents failure if webhook not set
         with:
           status: success
-          text: "✅ Admin Service Build Passed"
+          text: "✅ Admin Service CI Passed"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-      # 9. Slack Failure
-      - name: Slack Notification Failure
+      # 9. Slack Notification (Failure - non blocking)
+      - name: Slack Failure Notification
         if: failure()
-        uses: 8398a7/action-slack@v3
         continue-on-error: true
+        uses: 8398a7/action-slack@v3
         with:
           status: failure
-          text: "❌ Admin Service Build Failed"
+          text: "❌ Admin Service CI Failed"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
