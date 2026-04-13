@@ -39,6 +39,7 @@ jobs:
           fi
 
       # SonarQube Scan
+     
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
@@ -46,8 +47,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=admin-service
-            -Dsonar.sources=.
+           -Dsonar.projectKey=admin-service
+           -Dsonar.sources=.      
 
       # Sonar Quality Gate
       - name: SonarQube Quality Gate
