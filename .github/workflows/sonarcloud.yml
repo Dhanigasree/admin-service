@@ -1,18 +1,26 @@
-name: Admin Service CI Pipeline
+name: CI Pipeline (SonarCloud + Snyk)
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches:
+      - "main"
+      - "pipeline/*"
   pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: read
 
 jobs:
-  build:
+
+  SonarCloud:
     runs-on: ubuntu-latest
 
     steps:
       # 1. Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       # 2. Setup Node.js
       - name: Setup Node.js
@@ -24,52 +32,44 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 4. Run tests (safe even if missing)
-      - name: Run tests
-        run: npm test --if-present
-
-      # 5. Build project (safe if missing)
+      # 4. Build (optional safe)
       - name: Build project
         run: npm run build --if-present
 
-      # 6. SonarCloud Analysis (SAST + Code Quality)
-      
-      - name: SonarCloud Scan
+      # 5. SonarCloud Analysis
+      - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=Dhanigasree_admin-service_719c3fcc-07b5-4588-94b7-7da93932ba5b
-            -Dsonar.organization=dhanigasree
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    
+            -Dsonar.projectKey=YOUR_PROJECT_KEY
+            -Dsonar.organization=YOUR_ORG
+            -Dsonar.sources=.
 
-      # 7. Snyk Security Scan (SCA)
-      - name: Snyk Scan
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        with:
-          command: test
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  Snyk:
+    runs-on: ubuntu-latest
+    needs: SonarCloud
 
-      # 8. Slack Notification (Success - non blocking)
-      - name: Slack Success Notification
-        if: success()
-        continue-on-error: true
-        uses: 8398a7/action-slack@v3
-        with:
-          status: success
-          text: "✅ Admin Service CI Passed"
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+    steps:
+      # 1. Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # 9. Slack Notification (Failure - non blocking)
-      - name: Slack Failure Notification
-        if: failure()
-        continue-on-error: true
-        uses: 8398a7/action-slack@v3
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          status: failure
-          text: "❌ Admin Service CI Failed"
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          node-version: '18'
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Authenticate Snyk
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      # 5. Run Snyk test
+      - name: Run Snyk test
+        run: npx snyk test --all-projects
