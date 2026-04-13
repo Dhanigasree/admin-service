@@ -29,12 +29,14 @@ jobs:
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
-     
-      - name: SonarCloud Scan
-        # uses: SonarSource/sonarcloud-github-action@v2
+
+      - name: Sonar Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: http://YOUR_SONARQUBE_URL:9000
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    
+     
+    
         with:
           args: >
             -Dsonar.projectKey=Dhanigasree_admin-service_719c3fcc-07b5-4588-94b7-7da93932ba5b
