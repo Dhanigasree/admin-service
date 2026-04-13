@@ -44,7 +44,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=Dhanigasree_admin-service_719c3fcc-07b5-4588-94b7-7da93932ba5b
-            -Dsonar.organization=dhanigasree
+            -Dsonar.organization=Dhanigasree
             -Dsonar.sources=.
 
   Snyk:
