@@ -33,6 +33,7 @@ jobs:
         run: npm run build --if-present
 
       # 6. SonarCloud Analysis (SAST + Code Quality)
+      
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
@@ -40,7 +41,7 @@ jobs:
             -Dsonar.projectKey=Dhanigasree_admin-service_719c3fcc-07b5-4588-94b7-7da93932ba5b
             -Dsonar.organization=dhanigasree
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}    
 
       # 7. Snyk Security Scan (SCA)
       - name: Snyk Scan
