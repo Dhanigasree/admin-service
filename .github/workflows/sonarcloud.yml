@@ -29,10 +29,14 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # ✅ FIXED: prevents npm test failure
+      # ✅ FIX: prevents CI failure due to missing test script
       - name: Run Tests
-        run: npm test
-        continue-on-error: true
+        run: |
+          if npm run | grep -q "test"; then
+            npm test
+          else
+            echo "No test script found, skipping tests"
+          fi
 
       # SonarQube Scan
       - name: SonarQube Scan
@@ -51,12 +55,10 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # Snyk Scan
+      # Snyk Test
       - name: Snyk Test
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-
-      
