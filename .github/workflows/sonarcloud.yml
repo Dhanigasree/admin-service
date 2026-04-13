@@ -1,75 +1,55 @@
-name: CI Pipeline (SonarCloud + Snyk)
+name:  search  CI Pipeline
 
 on:
   push:
-    branches:
-      - "main"
-      - "pipeline/*"
+    branches: [ "main", "ci-pipeline" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
 
-permissions:
-  pull-requests: read
-
 jobs:
-
-  SonarCloud:
+  security-build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 2. Setup Node.js
+     
+      - name: Checkout Code
+        uses: actions/checkout@v4 
+    
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
 
-      # 3. Install dependencies
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm install
 
-      # 4. Build (optional safe)
-      - name: Build project
-        run: npm run build --if-present
-
-      # 5. SonarCloud Analysis
-      - name: Analyze with SonarCloud
-        uses: SonarSource/sonarcloud-github-action@v2
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+     
+      - name: SonarCloud Scan
+        # uses: SonarSource/sonarcloud-github-action@v2
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=Dhanigasree_admin-service
+            -Dsonar.projectKey=Dhanigasree_admin-service_719c3fcc-07b5-4588-94b7-7da93932ba5b
             -Dsonar.organization=dhanigasree
-            -Dsonar.sources=.
 
-  Snyk:
-    runs-on: ubuntu-latest
-    needs: SonarCloud
-
-    steps:
-      # 1. Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 2. Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      # - name: Sonar Quality Gate
+      #   uses: SonarSource/sonarqube-quality-gate-action@v1
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   timeout-minutes: 5
+      - name: Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          node-version: '18'
+          command: test --severity-threshold=high
 
-      # 3. Install dependencies
-      - name: Install dependencies
-        run: npm install
-
-      # 4. Authenticate Snyk
-      - name: Authenticate Snyk
-        run: snyk auth ${{ secrets.SNYK_TOKEN }}
-
-      # 5. Run Snyk test
-      - name: Run Snyk test
-        run: npx snyk test --all-projects
+  
