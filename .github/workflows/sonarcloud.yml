@@ -24,15 +24,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 4. Run Tests (Safe - won't fail if missing)
+      # 4. Run Tests (Safe)
       - name: Run tests
         run: npm test --if-present
 
-      # 5. Build Application (only if build script exists)
+      # 5. Build
       - name: Build project
         run: npm run build --if-present
 
-      # 6. SonarCloud Scan (SAST + Code Quality)
+      # 6. SonarCloud Scan
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
@@ -42,29 +42,31 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # 7. Snyk Security Scan (SCA)
+      # 7. Snyk Scan
       - name: Snyk Scan
         uses: snyk/actions/node@master
-        continue-on-error: true   # prevents pipeline failure due to vulnerabilities
+        continue-on-error: true
         with:
           command: test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # 8. Slack Notification (Only if webhook is configured)
-      - name: Slack Notification
-        if: ${{ success() && secrets.SLACK_WEBHOOK != '' }}
+      # 8. Slack Success (runs only if previous steps passed)
+      - name: Slack Notification Success
+        if: success()
         uses: 8398a7/action-slack@v3
+        continue-on-error: true   # prevents failure if webhook not set
         with:
           status: success
           text: "✅ Admin Service Build Passed"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-      # 9. Slack Notification on Failure (Optional)
+      # 9. Slack Failure
       - name: Slack Notification Failure
-        if: ${{ failure() && secrets.SLACK_WEBHOOK != '' }}
+        if: failure()
         uses: 8398a7/action-slack@v3
+        continue-on-error: true
         with:
           status: failure
           text: "❌ Admin Service Build Failed"
