@@ -5,50 +5,36 @@ on:
     branches: [ "main", "ci-pipeline" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:
 
 jobs:
-  security-build:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-
-      # 1. Checkout code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3. Install dependencies
       - name: Install Dependencies
         run: npm install
 
-      # 4. Cache SonarCloud
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-
-      # 5. SonarCloud Scan (FIXED)
-      - name: Sonar Scan
+      - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=Dhanigasree_admin-service_719c3fcc-07b5-4588-94b7-7da93932ba5b
-            -Dsonar.organization=Dhanigasree
+            -Dsonar.projectKey=admin-service
             -Dsonar.sources=.
 
-      # 6. Snyk Security Scan
-      - name: Snyk Security Scan
+      - name: Snyk Scan
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          command: test --severity-threshold=high
+          command: test
