@@ -38,7 +38,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=admin-service
-            -Dsonar.organization=dhanigasree
+            -Dsonar.organization=E-Commerce-Application-Microservice
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
